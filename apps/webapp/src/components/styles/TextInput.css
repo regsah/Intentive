@@ -59,6 +59,17 @@
     justify-content: space-between;
 }
 
+.TextInput-left-buttons-container {
+    height: 100%;
+    width: 20%;
+
+    margin-left: 1%;
+
+    display: flex;
+    align-items:center;
+    justify-content: baseline;
+}
+
 .TextInput-button {
     height: 80%;
     width: 8%;
@@ -98,4 +109,23 @@
     margin-right: 1%;
 
     font-size: medium;
+}
+
+.TextInput-button-isRecording {
+    background-color: #884444;
+    color: white;
+}
+
+.TextInput-button-isRecording:hover {
+    background-color: #aa4444;
+}
+
+.TextInput-button-pauseRecording {
+    margin-left: 2%;
+    background-color: #aa6600;
+    color: white;
+}
+
+.TextInput-button-pauseRecording:hover {
+    background-color: #cc8800;
 }

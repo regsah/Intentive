@@ -6,5 +6,31 @@
     height: 100%;
     width: 100%;
 
-    background-color: 242424
+    background-color: #242424
+}
+
+.RecorderPage-recording-symbol {
+    position: fixed;
+    left: 50%;
+    top: 30%;
+    transform: translate(-50%, -50%);
+    height: 40vh;
+    width: 40vh;
+
+    border: 1px solid #444444;
+    border-radius: 100%;
+
+    background-color: #303030;
+    color: #242424;
+
+    font-size: xx-large;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.recording-active {
+    background-color: #884444;
+    color: #ffffff;
 }
