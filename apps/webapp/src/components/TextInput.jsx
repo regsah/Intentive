@@ -84,6 +84,7 @@ function TextInput({isRecording, setIsRecording, isPaused, setIsPaused}) {
                 setQuery('');
             } else {
                 console.log('Text query:', query);
+                setQuery('');
             }
         } catch (error) {
             console.error('Failed to submit recording or text:', error);
