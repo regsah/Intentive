@@ -5,13 +5,17 @@ import TextInput from '../components/TextInput';
 
 function RecorderPage() {
     const [isRecording, setIsRecording] = useState(false);
+    const [isPaused, setIsPaused] = useState(false);
     
     return (
         <div className="RecorderPage-container">
-            <div className={`RecorderPage-recording-symbol ${isRecording ? 'recording-active' : ''}`}>
+            <div className={`RecorderPage-recording-symbol ${isRecording ? 'recording-active' : ''} ${isPaused ? 'recording-paused' : ''}`}>
                 <MdKeyboardVoice style={{height:'80%', width:'80%'}}/>
             </div>
-            <TextInput isRecording={isRecording} setIsRecording={setIsRecording} />
+            <TextInput  isRecording={isRecording}
+                        setIsRecording={setIsRecording} 
+                        isPaused={isPaused}
+                        setIsPaused={setIsPaused}/>
         </div>
     );
 }

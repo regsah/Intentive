@@ -34,3 +34,8 @@
     background-color: #884444;
     color: #ffffff;
 }
+
+.recording-paused {
+    background-color: #AA6633;
+    color: #ffffff;
+}

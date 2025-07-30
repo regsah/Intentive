@@ -122,10 +122,10 @@
 
 .TextInput-button-pauseRecording {
     margin-left: 2%;
-    background-color: #aa6600;
+    background-color: #AA6633;
     color: white;
 }
 
 .TextInput-button-pauseRecording:hover {
-    background-color: #cc8800;
+    background-color: #cc8844;
 }

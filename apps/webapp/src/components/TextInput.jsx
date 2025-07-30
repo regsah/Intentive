@@ -1,19 +1,97 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 import { MdKeyboardVoice } from "react-icons/md";
 import { FaArrowUp } from "react-icons/fa";
 import { GiCancel } from "react-icons/gi";
 import { FaPause } from "react-icons/fa6";
+import { FaCaretRight } from "react-icons/fa";
 
 
 import './styles/TextInput.css'
 
-function TextInput({isRecording, setIsRecording}) {
-    function handleSubmit(query, setQuery) {
-        console.log('Submitted query:', query);
-        setQuery('');
+import AudioRecorder from '../utils/audioRecorder.js';
+
+function TextInput({isRecording, setIsRecording, isPaused, setIsPaused}) {
+    async function handleStart() {
+        try {
+            const recorder = recorderRef.current;
+            if (!recorder.mediaRecorder || recorder.mediaRecorder.state === 'inactive') {
+                await recorder.init();
+            }
+
+            recorder.start();
+            setIsRecording(true);
+            setIsPaused(false);
+        } catch (error) {
+            console.error("Failed to start recording:", error);
+        }
     }
 
+    function handlePause() {
+        const recorder = recorderRef.current;
+        if (!recorder.mediaRecorder) return;
+
+        try {
+            if(recorder.mediaRecorder.state === 'paused') {
+                recorder.resume();
+                setIsPaused(false);
+            }
+            else if(recorder.mediaRecorder.state === 'recording') {
+                recorder.pause();
+                setIsPaused(true);
+            }
+        } catch (error) {
+            console.error(
+                recorder.mediaRecorder.state === 'paused' 
+                    ? "Failed to resume recording:" 
+                    : "Failed to pause recording:", 
+                error
+            );
+        }
+    }
+
+    function handleAbort() {
+        const recorder = recorderRef.current;
+        if (!recorder.mediaRecorder) return;
+
+        try {
+            recorder.abort();
+            setIsRecording(false);
+            setIsPaused(false);
+        } catch (error) {
+            console.error("Failed to abort recording:", error);
+        }
+    }
+
+    async function handleSubmit() {
+        const recorder = recorderRef.current;
+
+        try {
+            if (isRecording) {
+                const audioBlob = await recorder.stop();
+                setIsRecording(false);
+                setIsPaused(false);
+
+                const url = URL.createObjectURL(audioBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'recording.webm';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+                
+                setQuery('');
+            } else {
+                console.log('Text query:', query);
+            }
+        } catch (error) {
+            console.error('Failed to submit recording or text:', error);
+        }
+    }
+
+
+    const recorderRef = useRef(new AudioRecorder());
     const [query, setQuery] = useState('');
 
     return (
@@ -30,22 +108,25 @@ function TextInput({isRecording, setIsRecording}) {
                     isRecording ? (
                         <div className="TextInput-left-buttons-container">
                             <button className="TextInput-button TextInput-button-left TextInput-button-isRecording" 
-                                    onClick={() => setIsRecording(false)}
-                                    style={{width: '40%', height: '80%'}}>
+                                    style={{width: '40%', height: '80%'}}
+                                    onClick={() => handleAbort()}>
                                 <GiCancel />
                             </button>
                             <button className='TextInput-button TextInput-button-left TextInput-button-pauseRecording'
-                                    style={{width: '40%', height: '80%'}}>
-                                <FaPause />
+                                    style={{width: '40%', height: '80%'}}
+                                    onClick={() => handlePause()}>
+                                {isPaused ? <FaCaretRight /> : <FaPause />}
                             </button>
                         </div>
                     ) : (
-                        <button className="TextInput-button TextInput-button-left" onClick={() => setIsRecording(true)}>
+                        <button className="TextInput-button TextInput-button-left" 
+                                onClick={() => handleStart()}>
                             <MdKeyboardVoice />
                         </button>
                     )
                 }
-                <button className="TextInput-button TextInput-button-right" onClick={() => handleSubmit(query, setQuery)}>
+                <button className="TextInput-button TextInput-button-right" 
+                        onClick={() => handleSubmit()}>
                     <FaArrowUp />
                 </button>
             </div>
