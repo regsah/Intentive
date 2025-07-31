@@ -69,15 +69,16 @@ function TextInput({isRecording, setIsRecording, isPaused, setIsPaused}) {
         const recorder = recorderRef.current;
 
         try {
+            const uniqueId = uuidv4();
+
             if (isRecording) {
                 const audioBlob = await recorder.stop();
                 setIsRecording(false);
                 setIsPaused(false);
 
-                const timestamp = Date.now();
-                const uniqueId = uuidv4();
                 const formData = new FormData();
-                formData.append('audio', audioBlob, `recording_${timestamp}_${uniqueId}.webm`);
+                formData.append('id', uniqueId);
+                formData.append('audio', audioBlob, `recording_${uniqueId}.webm`);
 
                 const response = await axios.post('http://localhost:8000/api/submit_audio', formData, {
                     headers: {
@@ -87,7 +88,7 @@ function TextInput({isRecording, setIsRecording, isPaused, setIsPaused}) {
 
                 console.log('Audio upload response:', response.data);
             } else {
-                const response = await axios.post('http://localhost:8000/api/submit_text', { text: query });
+                const response = await axios.post('http://localhost:8000/api/submit_text', { id: uniqueId, text: query });
                 console.log('Text submission response:', response.data);
             }
             setQuery('');
