@@ -6,10 +6,12 @@ import { GiCancel } from "react-icons/gi";
 import { FaPause } from "react-icons/fa6";
 import { FaCaretRight } from "react-icons/fa";
 
-
 import './styles/TextInput.css'
 
 import AudioRecorder from '../utils/audioRecorder.js';
+
+import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid'; 
 
 function TextInput({isRecording, setIsRecording, isPaused, setIsPaused}) {
     async function handleStart() {
@@ -72,20 +74,23 @@ function TextInput({isRecording, setIsRecording, isPaused, setIsPaused}) {
                 setIsRecording(false);
                 setIsPaused(false);
 
-                const url = URL.createObjectURL(audioBlob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'recording.webm';
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                URL.revokeObjectURL(url);
-                
-                setQuery('');
+                const timestamp = Date.now();
+                const uniqueId = uuidv4();
+                const formData = new FormData();
+                formData.append('audio', audioBlob, `recording_${timestamp}_${uniqueId}.webm`);
+
+                const response = await axios.post('http://localhost:8000/api/submit_audio', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+
+                console.log('Audio upload response:', response.data);
             } else {
-                console.log('Text query:', query);
-                setQuery('');
+                const response = await axios.post('http://localhost:8000/api/submit_text', { text: query });
+                console.log('Text submission response:', response.data);
             }
+            setQuery('');
         } catch (error) {
             console.error('Failed to submit recording or text:', error);
         }
