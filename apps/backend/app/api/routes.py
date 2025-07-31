@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, FastAPI
+from fastapi import APIRouter, HTTPException, UploadFile, File, FastAPI, Form
+from uuid import UUID
 from app.db.models import TextInput
 
 import json
@@ -15,24 +16,29 @@ async def submit_text(data: TextInput):
     except (FileNotFoundError, json.JSONDecodeError):
         existing_data = []
 
-    new_entry = {"type": "text", "content": data.text}
+    new_entry = {"id": str(data.id), "type": "text", "content": data.text}
     existing_data.append(new_entry)
 
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(existing_data, f, ensure_ascii=False, indent=4)
 
-    return new_entry
+    return {"status": "success", "data": new_entry}
 
 @router.post("/submit_audio")
-async def submit_audio(audio: UploadFile = File(...)):
+async def submit_audio(id: UUID = Form(...), audio: UploadFile = File(...)):
     audio_bytes = await audio.read()
 
-    with open(f"../../local_storage/audio/{audio.filename}", "wb") as f:
+    with open(f"../../local_storage/audio/{id}.webm", "wb") as f:
         f.write(audio_bytes)
 
     return {
-        "type": "audio",
-        "filename": audio.filename,
-        "size": len(audio_bytes)
+        "status": "success",
+        "data": {
+            "id": str(id),
+            "type": "audio",
+            "filename": audio.filename,
+            "size": len(audio_bytes)
+        }
     }
+
 
