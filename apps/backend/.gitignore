@@ -8,6 +8,7 @@ bin-release/
 .settings/
 venv/
 .env
+__pycache__/
 
 # Executables
 *.swf
