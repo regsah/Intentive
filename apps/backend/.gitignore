@@ -6,7 +6,9 @@ bin-release/
 
 # Other files and folders
 .settings/
-local_storage/
+venv/
+.env
+__pycache__/
 
 # Executables
 *.swf
@@ -17,3 +19,4 @@ local_storage/
 # Project files, i.e. `.project`, `.actionScriptProperties` and `.flexProperties`
 # should NOT be excluded as they contain compiler settings and other important
 # information for Eclipse / Flash Builder.
+
