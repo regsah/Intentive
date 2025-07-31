@@ -1,0 +1,131 @@
+.TextInput-container {
+    position: fixed;
+    left: 50%;
+    top: 70%;
+    transform: translate(-50%, -50%);
+
+    height: 30vh;
+    width: 65vw;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+}
+
+.TextInput-field {
+    height: 75%;
+    width: 90%;
+    font-size: 1rem;
+    padding: 10px;
+    box-sizing: border-box;
+
+    background-color: #343434;
+
+    border: 3px solid gray;
+    border-bottom: 0px;
+
+    border-radius: 20px;
+    border-bottom-right-radius: 0px;
+    border-bottom-left-radius: 0px;
+
+    margin: 0;
+
+    resize: none;
+}
+
+.TextInput-field:focus {
+    outline: none;
+}
+
+.TextInput-buttonbar {
+    height: 25%;
+    width: 90%;
+
+    box-sizing: border-box;
+
+    background-color: #343434;
+
+    border: 3px solid gray;
+    border-top: 0px;
+    border-bottom-right-radius: 20px;
+    border-bottom-left-radius: 20px;
+
+    margin: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.TextInput-left-buttons-container {
+    height: 100%;
+    width: 20%;
+
+    margin-left: 1%;
+
+    display: flex;
+    align-items:center;
+    justify-content: baseline;
+}
+
+.TextInput-button {
+    height: 80%;
+    width: 8%;
+
+    font-size: 1rem;
+    box-sizing: border-box;
+
+    background-color: #444444;
+    color: white;
+
+    border: none;
+    border-radius: 20px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    cursor: pointer;
+    
+    transition: 200ms ease-in-out;
+
+}
+
+.TextInput-button:hover {
+    background-color: #555555;
+}
+
+.TextInput-button-left {
+    float: left;
+    margin-left: 1%;
+
+    font-size: x-large;
+}
+
+.TextInput-button-right {
+    float: right;
+    margin-right: 1%;
+
+    font-size: medium;
+}
+
+.TextInput-button-isRecording {
+    background-color: #884444;
+    color: white;
+}
+
+.TextInput-button-isRecording:hover {
+    background-color: #aa4444;
+}
+
+.TextInput-button-pauseRecording {
+    margin-left: 2%;
+    background-color: #AA6633;
+    color: white;
+}
+
+.TextInput-button-pauseRecording:hover {
+    background-color: #cc8844;
+}
