@@ -9,4 +9,4 @@ def convert_webm_to_wav(webm_path: str, wav_path: str):
         '-i', webm_path,
         wav_path
     ]
-    subprocess.run(command, check=True)
+    subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
