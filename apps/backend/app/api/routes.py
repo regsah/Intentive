@@ -3,7 +3,7 @@ from uuid import UUID
 from app.db.models import TextInput
 from app.services.speech_to_text import transcribe_audio
 from app.utils.local_store import save_data
-from app.utils.audio import convert_webm_to_wav
+from app.utils.audio import update_audio_type, subprocess
 
 import os
 
@@ -31,9 +31,10 @@ async def submit_audio(id: UUID = Form(...), audio: UploadFile = File(...)):
     with open(audio_path, "wb") as f:
         f.write(audio_bytes)
 
-    convert_webm_to_wav(audio_path, audio_path.replace(".webm", ".wav"))
-    os.remove(audio_path)
-    audio_path = audio_path.replace(".webm", ".wav")
+    try:
+        audio_path = update_audio_type(audio_path, "wav")
+    except subprocess.CalledProcessError as e:
+        raise HTTPException(status_code=500, detail="Audio conversion failed.")
 
     try:
         transcription = transcribe_audio(audio_path, "tr")
