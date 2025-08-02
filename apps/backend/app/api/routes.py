@@ -1,9 +1,8 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, FastAPI, Form
 from uuid import UUID
 from app.db.models import TextInput
-from app.services.speech_to_text import transcribe_audio
 from app.utils.local_store import save_data
-from app.utils.audio import update_audio_type, subprocess
+from app.utils.audio import process_audio
 
 import os
 
@@ -31,15 +30,7 @@ async def submit_audio(id: UUID = Form(...), audio: UploadFile = File(...)):
     with open(audio_path, "wb") as f:
         f.write(audio_bytes)
 
-    try:
-        audio_path = update_audio_type(audio_path, "wav")
-    except subprocess.CalledProcessError as e:
-        raise HTTPException(status_code=500, detail="Audio conversion failed.")
-
-    try:
-        transcription = transcribe_audio(audio_path, "tr")
-    except FileNotFoundError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    transcription = process_audio(audio_path, "tr")
 
     new_entry = {
         "id": str(id),
@@ -52,13 +43,7 @@ async def submit_audio(id: UUID = Form(...), audio: UploadFile = File(...)):
 
     return {
         "status": "success",
-        "data": {
-            "id": str(id),
-            "type": "audio",
-            "filename": audio.filename,
-            "size": len(audio_bytes),
-            "content": transcription
-        }
+        "data": new_entry
     }
 
 
