@@ -1,10 +1,12 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, FastAPI, Form
 from uuid import UUID
 from app.db.models import TextInput
-from app.utils.local_store import save_data
+
 from app.utils.audio import process_audio
 from app.services.intent_classification import classify_intent
 from app.services.emotion_classification import classify_emotion
+
+from app.db.database_scripts import add_entry
 
 import os
 
@@ -22,7 +24,7 @@ async def submit_text(data: TextInput):
     emotion = classify_emotion(data.text)
     new_entry = {"id": str(data.id), "type": "text", "content": data.text, "intent": intent, "emotion": emotion}
 
-    save_data(TEXT_PATH, new_entry)
+    add_entry(new_entry)
     
     return {"status": "success", "data": new_entry}
 
@@ -48,8 +50,8 @@ async def submit_audio(id: UUID = Form(...), audio: UploadFile = File(...)):
         "intent": intent,
         "emotion": emotion
     }
-    save_data(TEXT_PATH, new_entry)
-
+    add_entry(new_entry)
+    
     return {
         "status": "success",
         "data": new_entry
