@@ -4,6 +4,7 @@ from app.db.models import TextInput
 from app.utils.local_store import save_data
 from app.utils.audio import process_audio
 from app.services.intent_classification import classify_intent
+from app.services.emotion_classification import classify_emotion
 
 import os
 
@@ -18,7 +19,9 @@ router = APIRouter()
 @router.post("/submit_text")
 async def submit_text(data: TextInput):
     intent = classify_intent(data.text)
-    new_entry = {"id": str(data.id), "type": "text", "content": data.text, "intent": intent}
+    emotion = classify_emotion(data.text)
+    new_entry = {"id": str(data.id), "type": "text", "content": data.text, "intent": intent, "emotion": emotion}
+
     save_data(TEXT_PATH, new_entry)
     
     return {"status": "success", "data": new_entry}
@@ -34,6 +37,7 @@ async def submit_audio(id: UUID = Form(...), audio: UploadFile = File(...)):
 
     transcription = process_audio(audio_path, "tr")
     intent = classify_intent(transcription)
+    emotion = classify_emotion(transcription)
 
     new_entry = {
         "id": str(id),
@@ -41,7 +45,8 @@ async def submit_audio(id: UUID = Form(...), audio: UploadFile = File(...)):
         "filename": audio.filename,
         "size": len(audio_bytes),
         "content": transcription,
-        "intent": intent
+        "intent": intent,
+        "emotion": emotion
     }
     save_data(TEXT_PATH, new_entry)
 
