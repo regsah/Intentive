@@ -5,7 +5,7 @@
 ---
 
 ## Project Structure
-
+```
 intentive/
 |
 | - apps/
@@ -13,31 +13,36 @@ intentive/
 |   | - webapp/     # React frontend
 | - ffmpeg/         # FFmpeg
 | - local_storage/  # Temporary storage for audio files and logs
+```
 
 ---
 
 ## Installation & Setup
 
 ### 1. Clone the Repository
-
+```
 bash
 git clone https://github.com/your-username/intentive.git
 cd intentive
+```
 
 ### 2. Install FFmpeg
 Intentive requires FFmpeg to process voice input. Download from the link below and add it to the designated folder
 Download: https://ffmpeg.org/download.html
 
 ### 3. Run the backend
+```
 cd apps/backend
 pip install -r requirements.txt
 uvicorn app.main:app --reload
+```
 
 ### 4. Run the frontend
-
+```
 cd apps/webapp
 npm install
 npm run dev
+```
 
 ---
 
