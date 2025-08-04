@@ -7,14 +7,12 @@
 ## Project Structure
 
 intentive/
-│
-├── apps/
-│ ├── backend/ # FastAPI backend
-│ └── webapp/ # React frontend
-│
-├── ffmpeg/ # FFmpeg
-├── local_storage/ # Temporary storage for audio files and logs
-
+|
+| - apps/
+|   | - backend/    # FastAPI backend
+|   | - webapp/     # React frontend
+| - ffmpeg/         # FFmpeg
+| - local_storage/  # Temporary storage for audio files and logs
 
 ---
 
