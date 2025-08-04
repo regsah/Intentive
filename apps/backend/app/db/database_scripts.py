@@ -82,3 +82,23 @@ def get_entries(intent_label: str = None, emotion_label: str = None, type_label:
         } for row in rows
     ]
     return results
+
+def get_labels(table: str) -> list[str]:
+    valid_tables = {"intent", "emotion", "input_type"}
+    if table not in valid_tables:
+        raise ValueError(f"Invalid table '{table}'. Must be one of {valid_tables}.")
+
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute(f"SELECT label FROM {table}")
+        rows = cursor.fetchall()
+    return [row[0] for row in rows]
+
+def get_intents() -> list[str]:
+    return get_labels("intent")
+
+def get_emotions() -> list[str]:
+    return get_labels("emotion")
+
+def get_input_types() -> list[str]:
+    return get_labels("input_type")
