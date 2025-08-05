@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, FastAPI, Form
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, BackgroundTasks
 from uuid import UUID
 from app.db.models import TextInput
 
@@ -7,6 +7,8 @@ from app.services.intent_classification import classify_intent
 from app.services.emotion_classification import classify_emotion
 
 from app.db.database_scripts import add_entry, get_entries, get_intents, get_emotions, get_input_types
+
+from app.api.helper import safe_fetch, process_audio_task, process_text_task
 
 import os
 
@@ -19,43 +21,20 @@ router = APIRouter()
 
 
 @router.post("/submit_text")
-async def submit_text(data: TextInput):
-    intent = classify_intent(data.text)
-    emotion = classify_emotion(data.text)
-    new_entry = {"id": str(data.id), "type": "text", "content": data.text, "intent": intent, "emotion": emotion}
-
-    add_entry(new_entry)
-    
-    return {"status": "success", "data": new_entry}
-
+async def submit_text(data: TextInput, background_tasks: BackgroundTasks = None):
+    background_tasks.add_task(process_text_task, data)
+    return {"status": "accepted", "id": str(data.id)}
 
 @router.post("/submit_audio")
-async def submit_audio(id: UUID = Form(...), audio: UploadFile = File(...)):
+async def submit_audio(id: UUID = Form(...), audio: UploadFile = File(...), background_tasks: BackgroundTasks = None):
     audio_bytes = await audio.read()
 
     audio_path = os.path.join(AUDIO_DIR, f"{id}.webm")
     with open(audio_path, "wb") as f:
         f.write(audio_bytes)
 
-    transcription = process_audio(audio_path, "tr")
-    intent = classify_intent(transcription)
-    emotion = classify_emotion(transcription)
-
-    new_entry = {
-        "id": str(id),
-        "type": "audio",
-        "filename": audio.filename,
-        "size": len(audio_bytes),
-        "content": transcription,
-        "intent": intent,
-        "emotion": emotion
-    }
-    add_entry(new_entry)
-    
-    return {
-        "status": "success",
-        "data": new_entry
-    }
+    background_tasks.add_task(process_audio_task, id, audio_path)
+    return {"status": "accepted", "id": str(id)}
 
 @router.get("/fetch_entries")
 async def fetch_entries(intent_label: str = None, emotion_label: str = None, type_label: str = None):
@@ -67,15 +46,6 @@ async def fetch_entries(intent_label: str = None, emotion_label: str = None, typ
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
     
-
-def safe_fetch(fetch_func):
-    try:
-        return {"status": "success", "data": fetch_func()}
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception:
-        raise HTTPException(status_code=500, detail="Internal Server Error")
-
 @router.get("/fetch_type_label")
 async def fetch_type_label():
     return safe_fetch(get_input_types)
