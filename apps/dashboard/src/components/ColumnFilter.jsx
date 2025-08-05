@@ -43,6 +43,7 @@ function ColumnFilter({ filters, setFilters }) {
                         style={{ width: '100%' }}
                         value={filters[key] ?? ""}
                         onChange={(e) => handleChange(key, e)}
+                        className='ColumnFilter-select'
                     >
                         <option value="">All</option>
                         {(filterLists[key] || []).map((option, idx) => (

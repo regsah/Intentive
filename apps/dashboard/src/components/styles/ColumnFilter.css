@@ -6,4 +6,13 @@
 
     display: flex;
     flex-direction: row;
+    justify-content: flex-end;
+}
+
+.ColumnFilter-dropdown {
+    height: 100%;
+}
+
+.ColumnFilter-select {
+    height: 100%;
 }

@@ -6,7 +6,7 @@ import ColumnFilter from '../components/ColumnFilter';
 
 function DashboardPage() {
     const [openStates, setOpenStates] = useState({
-        id: true, type: false, query: true, intent: true, emotion: true,
+        id: true, type: true, query: true, intent: true, emotion: true,
     });
 
     const [filters, setFilters] = useState({
