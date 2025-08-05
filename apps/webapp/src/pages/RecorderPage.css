@@ -28,6 +28,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
+
+    transition: 200ms ease-in-out;
 }
 
 .recording-active {
