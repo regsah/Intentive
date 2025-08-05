@@ -7,6 +7,8 @@ from app.services.intent_classification import classify_intent
 from app.services.emotion_classification import classify_emotion
 
 from app.db.database_scripts import add_entry
+from app.db.database_scripts import get_entries
+
 
 import os
 
@@ -57,3 +59,12 @@ async def submit_audio(id: UUID = Form(...), audio: UploadFile = File(...)):
         "data": new_entry
     }
 
+@router.get("/fetch_entries")
+async def fetch_entries(intent_label: str = None, emotion_label: str = None, type_label: str = None):
+    try:
+        entries = get_entries(intent_label=intent_label, emotion_label=emotion_label, type_label=type_label)
+        return {"status": "success", "data": entries}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")

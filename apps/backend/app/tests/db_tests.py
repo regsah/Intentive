@@ -66,10 +66,27 @@ def test_get_entries():
 
     print("get_entries tests passed.")
 
+def test_get_all_entries():
+    print("Testing get_entries with no filters")
+    entries = get_entries()
+    print(f"Total entries found: {len(entries)}")
+    for entry in entries[:5]:
+        print(entry)
+    assert isinstance(entries, list)
+    assert len(entries) > 0
+    for entry in entries:
+        assert isinstance(entry, dict)
+        assert 'id' in entry
+        assert 'query' in entry
+        assert 'intent' in entry
+        assert 'emotion' in entry
+        assert 'type' in entry
+
 if __name__ == "__main__":
     test_get_emotions()
     test_get_intents()
     test_get_input_types()
     test_get_entries()
+    #test_get_all_entries()
     print("All database tests passed!")
     sys.exit(0)
