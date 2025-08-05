@@ -1,0 +1,22 @@
+.DataRow-container {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border-bottom: 1px solid #343434;
+}
+
+.DataRow-item {
+    height: 100%;
+    flex: 1;
+    color: #ffffff;
+
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+
+    border: #343434 1px solid;
+    border-top: none;
+    border-bottom: none;
+}
