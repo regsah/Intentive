@@ -2,16 +2,24 @@ import DataTable from '../components/DataTable';
 import { useState } from 'react';
 import './DashboardPage.css';
 import ColumnChooser from '../components/ColumnChooser';
+import ColumnFilter from '../components/ColumnFilter';
 
 function DashboardPage() {
     const [openStates, setOpenStates] = useState({
         id: true, type: false, query: true, intent: true, emotion: true,
     });
 
+    const [filters, setFilters] = useState({
+        type_label: null, intent_label: null, emotion_label: null 
+    });
+
     return (
         <div className="DashboardPage-container">
             <div className='Dashboard-container'>
-                <ColumnChooser openStates={openStates} setOpenStates={setOpenStates}/>
+                <div className="Dashboard-upper-bar-container">
+                    <ColumnChooser openStates={openStates} setOpenStates={setOpenStates}/>
+                    <ColumnFilter filters={filters}/>
+                </div>
                 <DataTable openStates={openStates}/>            
             </div>
         </div>

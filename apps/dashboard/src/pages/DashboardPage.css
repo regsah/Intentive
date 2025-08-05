@@ -21,3 +21,9 @@
     display: flex;
     flex-direction: column;
 } 
+
+.Dashboard-upper-bar-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}

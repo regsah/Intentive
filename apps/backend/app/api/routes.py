@@ -6,9 +6,7 @@ from app.utils.audio import process_audio
 from app.services.intent_classification import classify_intent
 from app.services.emotion_classification import classify_emotion
 
-from app.db.database_scripts import add_entry
-from app.db.database_scripts import get_entries
-
+from app.db.database_scripts import add_entry, get_entries, get_intents, get_emotions, get_input_types
 
 import os
 
@@ -68,3 +66,24 @@ async def fetch_entries(intent_label: str = None, emotion_label: str = None, typ
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
+    
+
+def safe_fetch(fetch_func):
+    try:
+        return {"status": "success", "data": fetch_func()}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+@router.get("/fetch_type_label")
+async def fetch_type_label():
+    return safe_fetch(get_input_types)
+
+@router.get("/fetch_intent_label")
+async def fetch_intent_label():
+    return safe_fetch(get_intents)
+
+@router.get("/fetch_emotion_label")
+async def fetch_emotion_label():
+    return safe_fetch(get_emotions)

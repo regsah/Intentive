@@ -1,0 +1,9 @@
+.ColumnFilter-container {
+    width: 30vw;
+    height: 5vh;
+    left: 0%;
+    top: 20%;
+
+    display: flex;
+    flex-direction: row;
+}
