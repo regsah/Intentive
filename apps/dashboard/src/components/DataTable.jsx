@@ -3,19 +3,23 @@ import DataRow from './DataRow';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-function DataTable({openStates}) {
+function DataTable({openStates, filters}) {
     const [data, setData] = useState([]);
 
     useEffect(() => {
         axios.get('http://localhost:8000/api/fetch_entries', {
-            params: {intent_label: null, emotion_label: null, type_label: null }
+            params: {
+                intent_label: filters.intent_label, 
+                emotion_label: filters.emotion_label, 
+                type_label: filters.type_label 
+            }
         }).then(response => {
             setData(response.data.data);
         }).catch(error => {
             if (error.response) console.error("Error:", error.response.status, error.response.data);
             else console.error("Error:", error.message);
         });
-    }, []);
+    }, [filters]);
 
 
     return (

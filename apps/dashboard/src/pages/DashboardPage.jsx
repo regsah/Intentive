@@ -20,7 +20,7 @@ function DashboardPage() {
                     <ColumnChooser openStates={openStates} setOpenStates={setOpenStates}/>
                     <ColumnFilter filters={filters} setFilters={setFilters} />
                 </div>
-                <DataTable openStates={openStates}/>            
+                <DataTable openStates={openStates} filters={filters}/>            
             </div>
         </div>
     );
