@@ -8,8 +8,12 @@ function DataRow({ rowData, openStates }) {
 
     return (
         <div className="DataRow-container">
-            {Object.keys(rowData).map((key) => (
-                openStates[key] && <div key={key} className="DataRow-item">{rowData[key]}</div>
+            {Object.keys(openStates).map((key) => (
+                openStates[key] && (
+                    <div key={key} className="DataRow-item">
+                        {rowData[key]}
+                    </div>
+                )
             ))}
         </div>
     );
