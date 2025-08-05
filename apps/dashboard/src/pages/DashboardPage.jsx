@@ -1,6 +1,7 @@
 import DataTable from '../components/DataTable';
 import { useState } from 'react';
 import './DashboardPage.css';
+import ColumnChooser from '../components/ColumnChooser';
 
 function DashboardPage() {
     const [openStates, setOpenStates] = useState({
@@ -9,7 +10,10 @@ function DashboardPage() {
 
     return (
         <div className="DashboardPage-container">
-            <DataTable openStates={openStates}/>
+            <div className='Dashboard-container'>
+                <ColumnChooser openStates={openStates} setOpenStates={setOpenStates}/>
+                <DataTable openStates={openStates}/>            
+            </div>
         </div>
     );
 }

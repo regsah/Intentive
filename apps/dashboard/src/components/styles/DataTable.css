@@ -1,20 +1,15 @@
 .DataTable-container {
-    position: fixed;
-    left: 50%;
-    top: 60%;
-    transform: translate(-50%, -50%);
-
-    height: 75vh;
-    width: 80vw;
-
+    width: 98%;
+    height: 99%;
     background-color: #454545;
 
     display: flex;
     flex-direction: column;
     align-items: center;
 
-    padding: 20px;
+    padding: 1%;
     padding-bottom: 0;
+
 
     border: 1px solid #343434;
     
@@ -44,10 +39,15 @@
 }
 
 .DataTable-body {
+    height: 100%;
     width: 100%;
-    overflow-y: auto;
+    overflow-y: scroll;
 
     display: flex;
     flex-direction: column;
     align-items: center;
+    
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
 }
