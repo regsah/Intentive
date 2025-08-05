@@ -14,7 +14,8 @@ function ColumnChooser({openStates, setOpenStates})
             {Object.keys(openStates).map((key) => {
                 return (
                     <div className={`columnState-button ${!openStates[key] && 'columnState-button-off'}`}
-                    onClick={() => toggleColumn(key)}>
+                    onClick={() => toggleColumn(key)}
+                    key={key}>
                         {key}
                     </div>
                 );

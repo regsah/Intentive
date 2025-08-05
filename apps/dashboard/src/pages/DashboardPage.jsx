@@ -1,5 +1,5 @@
 import DataTable from '../components/DataTable';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './DashboardPage.css';
 import ColumnChooser from '../components/ColumnChooser';
 import ColumnFilter from '../components/ColumnFilter';
@@ -18,7 +18,7 @@ function DashboardPage() {
             <div className='Dashboard-container'>
                 <div className="Dashboard-upper-bar-container">
                     <ColumnChooser openStates={openStates} setOpenStates={setOpenStates}/>
-                    <ColumnFilter filters={filters}/>
+                    <ColumnFilter filters={filters} setFilters={setFilters} />
                 </div>
                 <DataTable openStates={openStates}/>            
             </div>
