@@ -6,7 +6,7 @@ from app.utils.audio import process_audio
 from app.services.intent_classification import classify_intent
 from app.services.emotion_classification import classify_emotion
 
-from app.db.database_scripts import add_entry, get_entries, get_intents, get_emotions, get_input_types
+from app.db.database_scripts import get_entries, get_intents, get_emotions, get_input_types, delete_by_id
 
 from app.api.helper import safe_fetch, process_audio_task, process_text_task
 
@@ -57,3 +57,13 @@ async def fetch_intent_label():
 @router.get("/fetch_emotion_label")
 async def fetch_emotion_label():
     return safe_fetch(get_emotions)
+
+
+@router.delete("/entries/{entry_id}", status_code=204)
+def delete_entry(entry_id: str):
+    try:
+        delete_by_id(entry_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Internal server error")

@@ -102,3 +102,10 @@ def get_emotions() -> list[str]:
 
 def get_input_types() -> list[str]:
     return get_labels("input_type")
+
+def delete_by_id(entry_id: str) -> None:
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA foreign_keys = ON;")
+        cursor.execute("DELETE FROM entry WHERE id = ?", (entry_id,))
+        conn.commit()
