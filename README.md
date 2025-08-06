@@ -44,6 +44,13 @@ npm install
 npm run dev
 ```
 
+### 5. Run the dashboard
+```
+cd apps/webapp
+npm install
+npm run dev
+```
+
 ---
 
 ## License
