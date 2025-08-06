@@ -20,3 +20,24 @@
     border-top: none;
     border-bottom: none;
 }
+
+.DataRow-delete {
+    width: 30px;
+    height: 30px;
+    color: #ffffff; 
+    margin: 10px;
+    text-align: center;
+    align-content: center;
+    border-radius: 4px;
+    transition: 200ms ease-in-out;
+    font-size: x-large;
+    background-color: #d9534f; 
+    border: 1px solid #b52b27;
+    cursor: pointer;
+}
+
+.DataRow-delete:hover {
+    color: #ffffff;
+    background-color: #c9302c;
+    border-color: #8b1c1a;
+}

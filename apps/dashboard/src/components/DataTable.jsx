@@ -21,6 +21,15 @@ function DataTable({openStates, filters}) {
         });
     }, [filters]);
 
+    const handleDeletion = async (id) => {
+        try {
+            await axios.delete(`http://localhost:8000/api/entries/${id}`);
+            setData(prevData => prevData.filter(row => row.id !== id));
+        }
+        catch (err) {
+            throw err;
+        }
+    }
 
     return (
         <div className="DataTable-container">
@@ -28,10 +37,11 @@ function DataTable({openStates, filters}) {
                 {Object.keys(openStates).map((key) => (
                     openStates[key] && <div key={key} className="DataTable-header-item"> {key} </div>
                 ))}
+                <div className="DataTable-delete-empty"></div>
             </div>
             <div className="DataTable-body">
                 {data.map((rowData, index) => (
-                    <DataRow key={index} rowData={rowData} openStates={openStates} />
+                    <DataRow key={index} rowData={rowData} openStates={openStates} handleDeletion={handleDeletion} />
                 ))}
             </div>
         </div>    

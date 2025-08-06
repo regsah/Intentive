@@ -26,6 +26,8 @@
     text-align: center;
     color: #ffffff;
 
+    border-bottom: 1px solid #343434;
+
     display: flex;
 }
 
@@ -35,7 +37,11 @@
     font-weight: bold;
     border: 1px solid #343434;
     border-top: none;
+    border-bottom: none;
     background-color: #545454;
+
+    text-align: center;
+    align-content: center;
 }
 
 .DataTable-body {
@@ -49,5 +55,17 @@
     
     scrollbar-width: none;
     -ms-overflow-style: none;
+}
 
+.DataTable-delete-empty {
+    width: 30px;
+    height: 30px;
+    color: #ffffff; 
+    margin: 10px;
+    text-align: center;
+    align-content: center;
+    border-radius: 4px;
+    transition: 200ms ease-in-out;
+    font-size: x-large;
+    border: 1px solid transparent;
 }

@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import './styles/DataRow.css';
+import { MdDelete } from "react-icons/md";
+import axios from 'axios';
 
-function DataRow({ rowData, openStates }) {
+function DataRow({ rowData, openStates, handleDeletion }) {
+
     return (
         <div className="DataRow-container">
             {Object.keys(openStates).map((key) => (
@@ -11,6 +14,7 @@ function DataRow({ rowData, openStates }) {
                     </div>
                 )
             ))}
+            <div className="DataRow-delete" onClick={() => handleDeletion(rowData.id)}><MdDelete /></div>
         </div>
     );
 }
