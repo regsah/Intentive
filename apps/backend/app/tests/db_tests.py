@@ -1,92 +1,98 @@
-import sys
-import os
+import pytest
+import asyncio
+import pytest_asyncio
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 
-from app.db.database_scripts import *
+from app.db.models import Base, Intent, Emotion, InputType, Entry
+from app.db import database_scripts as scripts
 
-def test_get_emotions():
-    print("Testing get_emotions()")
-    emotions = get_emotions()
-    print("Emotions:", emotions)
-    assert isinstance(emotions, list)
-    assert len(emotions) > 0
-    assert all(isinstance(emotion, str) for emotion in emotions)
+# ----------------
+# FIXTURES
+# ----------------
 
-def test_get_intents():
-    print("Testing get_intents()")
-    intents = get_intents()
-    print("Intents:", intents)
-    assert isinstance(intents, list)
-    assert len(intents) > 0
-    assert all(isinstance(intent, str) for intent in intents)
+@pytest.fixture(scope="session")
+def event_loop():
+    """Required for pytest-asyncio with session scope."""
+    loop = asyncio.get_event_loop()
+    yield loop
+    loop.close()
 
-def test_get_input_types():
-    print("Testing get_input_types()")
-    input_types = get_input_types()
-    print("Input Types:", input_types)
-    assert isinstance(input_types, list)
-    assert len(input_types) > 0
-    assert all(isinstance(input_type, str) for input_type in input_types)
+@pytest_asyncio.fixture
+async def async_engine():
+    # Use in-memory SQLite
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield engine
+    await engine.dispose()
 
-def test_get_entries():
-    print("Testing get_entries with no filters")
-    entries = get_entries()
-    print(f"Total entries found: {len(entries)}")
-    assert isinstance(entries, list)
+@pytest_asyncio.fixture
+async def session(async_engine):
+    """Creates a fresh session with rollback after each test."""
+    async_session = sessionmaker(
+        bind=async_engine, expire_on_commit=False, class_=AsyncSession
+    )
+    async with async_session() as session:
+        yield session
+        await session.rollback()
 
-    if not entries:
-        print("No entries found. Consider inserting test data before running this test.")
-        return
+# ----------------
+# TESTS
+# ----------------
 
-    first_entry = entries[0]
-    print("Sample entry:", first_entry)
+@pytest.mark.asyncio
+async def test_get_or_create_label_creates_and_returns_id(session):
+    intent_id = await scripts.get_or_create_label(session, Intent, "greeting")
+    assert isinstance(intent_id, int)
 
-    # Test filter by intent_label
-    intent_label = first_entry['intent']
-    filtered_intent = get_entries(intent_label=intent_label)
-    print(f"Entries filtered by intent='{intent_label}': {len(filtered_intent)}")
-    assert all(e['intent'] == intent_label for e in filtered_intent)
+    same_id = await scripts.get_or_create_label(session, Intent, "greeting")
+    assert intent_id == same_id
 
-    # Test filter by emotion_label
-    emotion_label = first_entry['emotion']
-    filtered_emotion = get_entries(emotion_label=emotion_label)
-    print(f"Entries filtered by emotion='{emotion_label}': {len(filtered_emotion)}")
-    assert all(e['emotion'] == emotion_label for e in filtered_emotion)
+@pytest.mark.asyncio
+async def test_add_and_get_entries(session):
+    entry_data = {
+        "id": "123",
+        "content": "Hello there!",
+        "intent": "greeting",
+        "emotion": "happy",
+        "type": "text"
+    }
 
-    # Test filter by type_label
-    type_label = first_entry['type']
-    filtered_type = get_entries(type_label=type_label)
-    print(f"Entries filtered by type='{type_label}': {len(filtered_type)}")
-    assert all(e['type'] == type_label for e in filtered_type)
+    await scripts.add_entry(session, entry_data)
 
-    # Test combined filters
-    filtered_combined = get_entries(intent_label=intent_label, emotion_label=emotion_label, type_label=type_label)
-    print(f"Entries filtered by intent='{intent_label}', emotion='{emotion_label}', type='{type_label}': {len(filtered_combined)}")
-    for e in filtered_combined:
-        assert e['intent'] == intent_label and e['emotion'] == emotion_label and e['type'] == type_label
+    results = await scripts.get_entries(session)
+    assert len(results) == 1
+    assert results[0]["query"] == "Hello there!"
+    assert results[0]["intent"] == "greeting"
+    assert results[0]["emotion"] == "happy"
+    assert results[0]["type"] == "text"
 
-    print("get_entries tests passed.")
+@pytest.mark.asyncio
+async def test_get_entries_with_filters(session):
+    await scripts.add_entry(session, {
+        "id": "1",
+        "content": "Hi",
+        "intent": "greeting",
+        "emotion": "happy",
+        "type": "text"
+    })
+    await scripts.add_entry(session, {
+        "id": "2",
+        "content": "Bye",
+        "intent": "farewell",
+        "emotion": "sad",
+        "type": "text"
+    })
 
-def test_get_all_entries():
-    print("Testing get_entries with no filters")
-    entries = get_entries()
-    print(f"Total entries found: {len(entries)}")
-    for entry in entries[:5]:
-        print(entry)
-    assert isinstance(entries, list)
-    assert len(entries) > 0
-    for entry in entries:
-        assert isinstance(entry, dict)
-        assert 'id' in entry
-        assert 'query' in entry
-        assert 'intent' in entry
-        assert 'emotion' in entry
-        assert 'type' in entry
+    filtered = await scripts.get_entries(session, intent_label="farewell")
+    assert len(filtered) == 1
+    assert filtered[0]["intent"] == "farewell"
 
-if __name__ == "__main__":
-    test_get_emotions()
-    test_get_intents()
-    test_get_input_types()
-    test_get_entries()
-    #test_get_all_entries()
-    print("All database tests passed!")
-    sys.exit(0)
+@pytest.mark.asyncio
+async def test_delete_by_id(session):
+    intent_id = await scripts.get_or_create_label(session, Intent, "test")
+    await scripts.delete_by_id(session, Intent, intent_id)
+
+    with pytest.raises(ValueError):
+        await scripts.delete_by_id(session, Intent, intent_id)
