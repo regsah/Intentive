@@ -1,25 +1,28 @@
 import os
 from fastapi import HTTPException
 
-from app.utils.audio import process_audio
-from app.services.emotion_classification import classify_emotion
-from app.services.intent_classification import classify_intent
-
-from app.db.database_scripts import add_entry
+from app.db.database import AsyncSessionLocal
 
 from app.db.models import TextInput
 
-def safe_fetch(fetch_func):
-    try:
-        return {"status": "success", "data": fetch_func()}
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception:
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+async def safe_fetch(fetch_func):
+    async with AsyncSessionLocal() as session:
+        try:
+            data = await fetch_func(session)
+            return {"status": "success", "data": data}
+        except ValueError as e:
+            raise HTTPException(status_code=404, detail=str(e))
+        except Exception:
+            raise HTTPException(status_code=500, detail="Internal Server Error")
 
-def process_entry(id, content, entry_type):
-    intent = classify_intent(content)
-    emotion = classify_emotion(content)
+async def process_entry(id, content, entry_type):
+    from app.services.emotion_classification import classify_emotion
+    from app.services.intent_classification import classify_intent
+    from app.db.database_scripts import add_entry
+
+
+    intent = await classify_intent(content)
+    emotion = await classify_emotion(content)
     new_entry = {
         "id": str(id), 
         "type": entry_type, 
@@ -27,12 +30,15 @@ def process_entry(id, content, entry_type):
         "intent": intent, 
         "emotion": emotion
     }
-    add_entry(new_entry)
+    async with AsyncSessionLocal() as session:
+        await add_entry(session, new_entry)
+        await session.commit()
 
 
-def process_text_task(data: TextInput):
-    process_entry(data.id, data.text, "text")
+async def process_text_task(data: TextInput):
+    await process_entry(data.id, data.text, "text")
     
-def process_audio_task(id, audio_path):
-    transcription = process_audio(audio_path, "tr")
-    process_entry(id, transcription, "audio")
+async def process_audio_task(id, audio_path):
+    from app.utils.audio import process_audio
+    transcription = await process_audio(audio_path, "tr")
+    await process_entry(id, transcription, "audio")

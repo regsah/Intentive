@@ -1,111 +1,101 @@
-import sqlite3
-import os
-
-from app.utils.paths import LOCAL_STORAGE_DIR
-DB_PATH = os.path.join(LOCAL_STORAGE_DIR, "text_submissions.db")
-
-def get_label_id(cursor: sqlite3.Cursor, table: str, label: str) -> int:
-    cursor.execute(f"SELECT id FROM {table} WHERE label = ?", (label,))
-    row = cursor.fetchone()
-    if row:
-        return row[0]
-    else:
-        raise ValueError(f"Label '{label}' not found in table '{table}'")
+from typing import List, Optional
+from sqlalchemy import select, delete
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import selectinload
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.models import Intent, Emotion, InputType, Entry
 
 
-def add_entry(entry: dict) -> None:
+async def get_label_id(session: AsyncSession, model, label: str) -> int:
+    orm_query = select(model).where(model.label == label)
+    result = await session.execute(orm_query)
+    obj = result.scalar_one_or_none()
+    
+    if obj: return obj.id
+    raise ValueError(f"Label '{label}' not found in {model.__tablename__}")
+
+
+async def get_labels(session: AsyncSession, model) -> list[str]:
+    result = await session.execute(select(model))
+    labels = [obj.label for obj in result.scalars().all()]
+    return labels
+
+async def get_intents(session: AsyncSession) -> list[str]:
+    return await get_labels(session, Intent)
+
+async def get_emotions(session: AsyncSession) -> list[str]:
+    return await get_labels(session, Emotion)
+
+async def get_input_types(session: AsyncSession) -> list[str]:
+    return await get_labels(session, InputType)
+
+async def get_or_create_label(session: AsyncSession, model, label: str) -> int:
+    try:
+        return await get_label_id(session, model, label)
+    except ValueError:
+        obj = model(label=label)
+        session.add(obj)
+        await session.flush()
+        return obj.id
+
+
+async def add_entry(session: AsyncSession, entry: dict) -> None:
     entry_id = entry['id']
-    input_type = entry['type']
     query = entry['content']
     intent = entry['intent']
     emotion = entry['emotion']
+    input_type = entry['type']
+
+    intent_id = await get_or_create_label(session, Intent, intent)
+    emotion_id = await get_or_create_label(session, Emotion, emotion)
+    input_type_id = await get_or_create_label(session, InputType, input_type)
+
+    new_entry = Entry(
+        id=entry_id,
+        query=query,
+        intent_id=intent_id,
+        emotion_id=emotion_id,
+        input_type_id=input_type_id
+    )
+    session.add(new_entry)
     try:
-            
-        with sqlite3.connect(DB_PATH) as conn:
-            cursor = conn.cursor()
-            cursor.execute("PRAGMA foreign_keys = ON;")
+        await session.flush()
+    except IntegrityError as e:
+        raise IntegrityError(f"Entry with id '{entry_id}' already exists.") from e
+        
 
-            cursor.execute("INSERT OR IGNORE INTO intent (label) VALUES (?)", (intent,))
-            intent_id = get_label_id(cursor, "intent", intent)
 
-            cursor.execute("INSERT OR IGNORE INTO emotion (label) VALUES (?)", (emotion,))
-            emotion_id = get_label_id(cursor, "emotion", emotion)
-
-            cursor.execute("INSERT OR IGNORE INTO input_type (label) VALUES (?)", (input_type,))
-            type_id = get_label_id(cursor, "input_type", input_type)
-
-            cursor.execute(
-                """
-                INSERT INTO entry (id, query, intent_id, emotion_id, type_id)
-                VALUES (?, ?, ?, ?, ?)
-                """,
-                (entry_id, query, intent_id, emotion_id, type_id)
-            )
-            conn.commit()
-    except sqlite3.IntegrityError as e:
-        raise sqlite3.IntegrityError(f"Entry with id '{entry_id}' already exists.") from e
-
-def get_entries(intent_label: str = None, emotion_label: str = None, type_label: str = None) -> list[dict]:
-    query = """
-        SELECT e.id, e.query, i.label AS intent, em.label AS emotion, it.label AS type
-        FROM entry e
-        JOIN intent i ON e.intent_id = i.id
-        JOIN emotion em ON e.emotion_id = em.id
-        JOIN input_type it ON e.type_id = it.id
-        where 1=1
-    """
-
-    params = []
+async def get_entries(session: AsyncSession, intent_label: str = None, 
+                emotion_label: str = None, input_type_label: str = None) -> list[dict]:
+    
+    query = select(Entry).options(
+        selectinload(Entry.intent),
+        selectinload(Entry.emotion),
+        selectinload(Entry.input_type)
+    )
 
     if intent_label:
-        query += " AND i.label = ?"
-        params.append(intent_label)
+        query = query.join(Entry.intent).where(Intent.label == intent_label)
     if emotion_label:
-        query += " AND em.label = ?"
-        params.append(emotion_label)
-    if type_label:
-        query += " AND it.label = ?"
-        params.append(type_label)
-    
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute(query, params)
-        rows = cursor.fetchall()
-    
-    results = [
+        query = query.join(Entry.emotion).where(Emotion.label == emotion_label)
+    if input_type_label:
+        query = query.join(Entry.input_type).where(InputType.label == input_type_label)
+
+    result = await session.execute(query)
+    entries = result.scalars().all()
+
+    return [
         {
-            "id": row[0],
-            "query": row[1],
-            "intent": row[2],
-            "emotion": row[3],
-            "type": row[4]
-        } for row in rows
+            "id": entry.id,
+            "query": entry.query,
+            "intent": entry.intent.label,
+            "emotion": entry.emotion.label,
+            "type": entry.input_type.label,
+        }
+        for entry in entries
     ]
-    return results
 
-def get_labels(table: str) -> list[str]:
-    valid_tables = {"intent", "emotion", "input_type"}
-    if table not in valid_tables:
-        raise ValueError(f"Invalid table '{table}'. Must be one of {valid_tables}.")
-
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute(f"SELECT label FROM {table}")
-        rows = cursor.fetchall()
-    return [row[0] for row in rows]
-
-def get_intents() -> list[str]:
-    return get_labels("intent")
-
-def get_emotions() -> list[str]:
-    return get_labels("emotion")
-
-def get_input_types() -> list[str]:
-    return get_labels("input_type")
-
-def delete_by_id(entry_id: str) -> None:
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute("PRAGMA foreign_keys = ON;")
-        cursor.execute("DELETE FROM entry WHERE id = ?", (entry_id,))
-        conn.commit()
+async def delete_by_id(session: AsyncSession, model, elem_id: str) -> None:
+    result = await session.execute(delete(model).where(model.id == elem_id))
+    if result.rowcount == 0:
+        raise ValueError(f"No entry found with id '{elem_id}'")

@@ -7,6 +7,8 @@ from app.services.intent_classification import classify_intent
 from app.services.emotion_classification import classify_emotion
 
 from app.db.database_scripts import get_entries, get_intents, get_emotions, get_input_types, delete_by_id
+from app.db.database import AsyncSessionLocal
+from app.db.models import Entry
 
 from app.api.helper import safe_fetch, process_audio_task, process_text_task
 
@@ -38,32 +40,36 @@ async def submit_audio(id: UUID = Form(...), audio: UploadFile = File(...), back
 
 @router.get("/fetch_entries")
 async def fetch_entries(intent_label: str = None, emotion_label: str = None, type_label: str = None):
-    try:
-        entries = get_entries(intent_label=intent_label, emotion_label=emotion_label, type_label=type_label)
-        return {"status": "success", "data": entries}
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+    async with AsyncSessionLocal() as session:
+        try:
+            entries = await get_entries(session=session, intent_label=intent_label, 
+                                        emotion_label=emotion_label, input_type_label=type_label)
+            return {"status": "success", "data": entries}
+        except ValueError as e:
+            raise HTTPException(status_code=404, detail=str(e))
+        except Exception as e:
+            raise HTTPException(status_code=500, detail="Internal Server Error")
     
 @router.get("/fetch_type_label")
 async def fetch_type_label():
-    return safe_fetch(get_input_types)
+    return await safe_fetch(get_input_types)
 
 @router.get("/fetch_intent_label")
 async def fetch_intent_label():
-    return safe_fetch(get_intents)
+    return await safe_fetch(get_intents)
 
 @router.get("/fetch_emotion_label")
 async def fetch_emotion_label():
-    return safe_fetch(get_emotions)
+    return await safe_fetch(get_emotions)
 
 
 @router.delete("/entries/{entry_id}", status_code=204)
-def delete_entry(entry_id: str):
-    try:
-        delete_by_id(entry_id)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception:
-        raise HTTPException(status_code=500, detail="Internal server error")
+async def delete_entry(entry_id: str):
+    async with AsyncSessionLocal() as session:
+        try:
+            await delete_by_id(session, Entry, entry_id)
+            await session.commit()
+        except ValueError as e:
+            raise HTTPException(status_code=404, detail=str(e))
+        except Exception:
+            raise HTTPException(status_code=500, detail="Internal server error")
