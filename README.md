@@ -34,6 +34,7 @@ Download: https://ffmpeg.org/download.html
 ```
 cd apps/backend
 pip install -r requirements.txt
+python -m app.db.init_db           # To initialize the database in the first run
 uvicorn app.main:app --reload
 ```
 
